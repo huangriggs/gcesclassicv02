@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>經典背誦闖關系統 - 關主版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --g-blue: #4285F4;
+            --g-red: #EA4335;
+            --g-yellow: #FBBC05;
+            --g-green: #34A853;
+        }
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: #F8F9FA;
+            background-image: radial-gradient(#dee2e6 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .card-locked {
+            filter: grayscale(1);
+            opacity: 0.3;
+            pointer-events: none;
+            border: 4px dashed #DADCE0;
+        }
+        .card-active {
+            border: 5px solid var(--g-blue);
+            box-shadow: 0 15px 30px -10px rgba(66, 133, 244, 0.4);
+            pointer-events: auto;
+            opacity: 1;
+            background: white;
+            transform: translateY(-5px);
+        }
+        .sidebar-full { width: 33.3333%; }
+        .sidebar-slim { width: 100px; }
+        
+        .btn-bouncy {
+            transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .btn-bouncy:active {
+            transform: scale(0.92);
+        }
+        .bubble-shadow {
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+        }
+        .bubble-shadow-blue { box-shadow: 0 6px 0 #2b62c2; }
+        .bubble-shadow-green { box-shadow: 0 6px 0 #1e8038; }
+        .bubble-shadow-red { box-shadow: 0 6px 0 #b3261e; }
+        
+        select {
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234285F4' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.2em;
+        }
+        .vertical-text { writing-mode: vertical-rl; }
+    </style>
+</head>
+<body class="overflow-hidden text-slate-800">
+
+<div id="app" class="flex h-screen w-full relative">
+    
+    <!-- 左側邊欄：學生資料 -->
+    <aside id="sidebar" class="sidebar-full bg-white border-r-8 border-[#FBBC05] p-8 flex flex-col transition-all duration-500 relative z-50 shadow-2xl">
+        <div id="sidebar-header" class="mb-6">
+            <h2 class="text-3xl font-black text-[#4285F4] flex items-center gap-2 whitespace-nowrap overflow-hidden">
+                <span>🎨</span> <span id="sidebar-title-text">小勇士登記</span>
+            </h2>
+        </div>
+
+        <div id="sidebar-content" class="space-y-6 flex-grow overflow-y-auto">
+            <!-- 學期選擇 -->
+            <div class="space-y-2">
+                <label class="block text-sm font-black text-[#FBBC05] flex items-center gap-1">📅 學期</label>
+                <select id="s-semester" class="w-full p-4 bg-slate-50 border-4 border-slate-100 rounded-[1.5rem] text-xl font-bold focus:border-[#FBBC05] outline-none transition-all text-slate-700">
+                    <option value="1">上學期</option>
+                    <option value="2">下學期</option>
+                </select>
+            </div>
+            <div class="space-y-2">
+                <label class="block text-sm font-black text-[#EA4335] flex items-center gap-1">🍎 年級</label>
+                <select id="s-grade" class="w-full p-4 bg-slate-50 border-4 border-slate-100 rounded-[1.5rem] text-xl font-bold focus:border-[#FBBC05] outline-none transition-all text-slate-700">
+                    <option value="">請選擇</option>
+                    <option value="1">一年級</option><option value="2">二年級</option>
+                    <option value="3">三年級</option><option value="4">四年級</option>
+                    <option value="5">五年級</option><option value="6">六年級</option>
+                </select>
+            </div>
+            <div class="space-y-2">
+                <label class="block text-sm font-black text-[#34A853] flex items-center gap-1">🏫 班級</label>
+                <select id="s-class" class="w-full p-4 bg-slate-50 border-4 border-slate-100 rounded-[1.5rem] text-xl font-bold focus:border-[#34A853] outline-none transition-all text-slate-700">
+                    <option value="">請選擇</option>
+                    <script>for(let i=1;i<=9;i++) document.write(`<option value="${i}">${i} 班</option>`)</script>
+                </select>
+            </div>
+            <div class="space-y-2">
+                <label class="block text-sm font-black text-[#4285F4] flex items-center gap-1">🪑 座號</label>
+                <select id="s-seat" class="w-full p-4 bg-slate-50 border-4 border-slate-100 rounded-[1.5rem] text-xl font-bold focus:border-[#4285F4] outline-none transition-all text-slate-700">
+                    <option value="">請選擇</option>
+                    <script>for(let i=1;i<=30;i++) document.write(`<option value="${i}">${i} 號</option>`)</script>
+                </select>
+            </div>
+            <button id="start-btn" class="btn-bouncy w-full py-6 bg-[#4285F4] text-white rounded-[2rem] font-black text-2xl bubble-shadow-blue mt-4">
+                開始挑戰 ➔
+            </button>
+        </div>
+
+        <!-- 縮小時顯示 -->
+        <div id="sidebar-mini" class="hidden flex-grow flex flex-col items-center justify-center text-[#FBBC05]">
+            <div class="text-5xl animate-bounce">⭐</div>
+            <div id="sidebar-mini-text" class="vertical-text mt-6 text-2xl font-black tracking-[0.5em]">闖關中</div>
+        </div>
+
+        <div class="mt-auto text-center pt-4">
+            <span class="text-xs font-bold text-slate-300 cursor-pointer hover:text-slate-500" onclick="openAdmin()">管理後台</span>
+        </div>
+    </aside>
+
+    <!-- 右側主區 -->
+    <main class="flex-grow p-0 flex flex-col relative">
+        <header class="p-8 flex justify-between items-center max-w-5xl mx-auto w-full">
+            <h1 class="text-4xl font-black flex items-center gap-1 cursor-pointer" onclick="location.reload()">
+                <span class="text-[#4285F4]">經</span><span class="text-[#EA4335]">典</span><span class="text-[#FBBC05]">背</span><span class="text-[#34A853]">誦</span>
+            </h1>
+            <div class="flex items-center gap-4">
+                <button id="cancel-btn" class="hidden btn-bouncy relative z-[60] px-6 py-3 bg-[#FCE8E6] text-[#EA4335] rounded-full font-black border-2 border-[#EA4335] shadow-sm">
+                    🛑 取消闖關
+                </button>
+                <div id="status-badge" class="px-6 py-3 bg-white rounded-full border-4 border-slate-100 font-black text-slate-400 shadow-sm">
+                    系統待命
+                </div>
+            </div>
+        </header>
+
+        <div id="main-scroll-area" class="flex-grow overflow-y-auto px-8 pb-20">
+            <div id="main-view" class="max-w-4xl mx-auto">
+                <!-- 歡迎畫面 -->
+                <div id="welcome-view" class="h-[60vh] flex flex-col items-center justify-center bg-white rounded-[4rem] border-8 border-dashed border-slate-100 text-slate-300 text-center p-10 shadow-inner">
+                    <div class="text-[120px] mb-6">🌟</div>
+                    <h3 class="text-3xl font-black text-slate-400 mb-2">辛苦的關主，您好！</h3>
+                    <p class="text-lg font-bold text-slate-300">請選取學生資料後點擊開始</p>
+                </div>
+
+                <!-- 闖關容器 -->
+                <div id="game-container" class="hidden space-y-10"></div>
+
+                <!-- 結算區 -->
+                <div id="final-area" class="hidden mt-16 animate-bounce">
+                    <div class="bg-white p-12 rounded-[3.5rem] border-8 border-[#FBBC05] text-center shadow-2xl relative overflow-hidden">
+                        <div class="text-[#FBBC05] font-black tracking-widest mb-4">🏆 挑戰結果 🏆</div>
+                        <div id="final-result-text" class="text-8xl font-black text-slate-800">---</div>
+                    </div>
+                    <button id="save-btn" class="btn-bouncy w-full mt-10 py-10 bg-[#34A853] text-white rounded-[3rem] font-black text-5xl bubble-shadow-green">
+                        💾 存檔並迎接下一位
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 自訂 Modal: 取消確認 -->
+    <div id="modal-cancel" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[200] hidden flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-md rounded-[3rem] p-10 text-center shadow-2xl border-8 border-white">
+            <div class="text-8xl mb-4">😮</div>
+            <h3 class="text-3xl font-black text-[#EA4335] mb-4">確定要取消嗎？</h3>
+            <p class="text-slate-500 font-bold mb-10">現在取消的話，這位同學的努力就不會被記錄下來囉！</p>
+            <div class="flex gap-4">
+                <button onclick="closeModal('modal-cancel')" class="flex-1 py-5 bg-slate-100 rounded-2xl font-black text-xl text-slate-500">繼續背誦</button>
+                <button onclick="confirmCancel()" class="flex-1 py-5 bg-[#EA4335] text-white rounded-2xl font-black text-xl bubble-shadow-red">確定取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自訂 Modal: 錯誤提示 -->
+    <div id="modal-error" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[300] hidden flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-md rounded-[3rem] p-10 text-center shadow-2xl border-8 border-[#EA4335] animate-bounce">
+            <div class="text-8xl mb-4">⚠️</div>
+            <h3 class="text-3xl font-black text-[#EA4335] mb-4">題庫不完整！</h3>
+            <p id="error-message" class="text-slate-600 font-black mb-10 bg-red-50 p-4 rounded-2xl">找不到對應題號的題目，請檢查題庫資料。</p>
+            <button onclick="closeModalAndReset()" class="w-full py-5 bg-[#4285F4] text-white rounded-2xl font-black text-xl bubble-shadow-blue">回主畫面並更新題庫</button>
+        </div>
+    </div>
+
+    <!-- 自訂 Modal: 清空確認 -->
+    <div id="modal-clear" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[200] hidden flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-md rounded-[3rem] p-10 text-center shadow-2xl border-8 border-[#EA4335]">
+            <div class="text-8xl mb-4">🧨</div>
+            <h3 class="text-3xl font-black text-[#EA4335] mb-4">引爆警告！</h3>
+            <p class="text-slate-600 font-black mb-10 bg-red-50 p-4 rounded-2xl">這會刪掉「所有題庫」和「所有成績」！<br>點下去就沒救囉！</p>
+            <div class="flex gap-4">
+                <button onclick="closeModal('modal-clear')" class="flex-1 py-5 bg-slate-100 rounded-2xl font-black text-xl">手滑了</button>
+                <button onclick="confirmClear()" class="flex-1 py-5 bg-[#EA4335] text-white rounded-2xl font-black text-xl shadow-lg">確認引爆</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 管理後台 Modal -->
+    <div id="modal-admin" class="fixed inset-0 bg-white/95 backdrop-blur-xl z-[150] hidden p-10 overflow-y-auto">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-10 border-b-8 border-slate-100 pb-6">
+                <h2 class="text-5xl font-black text-slate-800 flex items-center gap-4">⚙️ 關主管理中心</h2>
+                <button onclick="closeModal('modal-admin')" class="w-16 h-16 bg-slate-100 rounded-full text-3xl font-black">✕</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <!-- 題庫管理 -->
+                <div class="bg-white p-8 rounded-[3rem] border-4 border-dashed border-[#4285F4] space-y-6">
+                    <h3 class="text-2xl font-black text-[#4285F4] flex items-center gap-2">📚 題庫補給</h3>
+                    <button onclick="downloadTemplate()" class="text-sm font-bold text-blue-500 bg-blue-50 px-4 py-2 rounded-full">📥 下載範例檔</button>
+                    <input type="file" id="csv-file" class="hidden" accept=".csv,.txt" onchange="handleFile(this)">
+                    <button onclick="document.getElementById('csv-file').click()" class="w-full py-6 bg-[#4285F4]/10 border-4 border-dashed border-[#4285F4] text-[#4285F4] rounded-3xl font-black text-xl hover:bg-[#4285F4]/20">📁 點擊選取檔案匯入</button>
+                    <textarea id="raw-text" class="w-full h-32 p-4 bg-slate-50 border-4 border-slate-100 rounded-3xl text-sm outline-none font-bold" placeholder="或在此貼上：年級,題號,題目內容"></textarea>
+                    <button onclick="importFromText()" class="w-full py-4 bg-[#4285F4] text-white rounded-2xl font-black bubble-shadow-blue">寫入文字數據</button>
+                </div>
+
+                <!-- 數據管理 -->
+                <div class="space-y-10">
+                    <div class="bg-white p-8 rounded-[3rem] border-4 border-[#34A853] flex flex-col items-center">
+                        <div class="text-[#34A853] font-black text-lg mb-2">已儲存英雄榜</div>
+                        <div id="count-display" class="text-7xl font-black text-slate-800">0</div>
+                        <button onclick="exportCSV()" class="w-full mt-6 py-6 bg-[#34A853] text-white rounded-3xl font-black text-2xl bubble-shadow-green">📊 匯出全體成績 (CSV)</button>
+                    </div>
+                    <button onclick="document.getElementById('modal-clear').classList.remove('hidden')" class="w-full py-4 bg-red-50 text-[#EA4335] rounded-3xl font-black border-4 border-red-100 hover:bg-red-100 transition-colors">🔥 清空全部資料庫</button>
+                </div>
+            </div>
+
+            <div class="mt-10 p-6 bg-slate-900 rounded-[2rem] text-[#8AB4F8] font-mono text-xs h-32 overflow-y-auto" id="log-box">
+                > 系統日誌就緒...
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+/** 核心邏輯 **/
+
+let db = null;
+const state = { poems: [], current: null, results: [null, null, null, null, null] };
+
+const POEM_RULES = {
+    "S1": { // 上學期
+        "1": [[1,2],[3,4],[5,6],[7,9],[10,12]],
+        "2": [[1,2],[3,4],[5,6],[7,9],[10,12]],
+        "3": [[1,2],[3,4],[5,6],[7,9],[10,12]],
+        "4": [[1,2],[3,4],[5,6],[7,9],[10,12]],
+        "5": [[1,2],[3,4],[5,6],[7,9],[10,12]], 
+        "6": [[1,2],[3,4],[5,6],[7,8],[9,10]]
+    },
+    "S2": { // 下學期
+        "1": [[1,2],[3,4],[5,6],[7,9],[10,12]],
+        "2": [[1,2],[3,4],[5,6],[7,9],[10,12]],
+        "3": [[1,2],[3,4],[5,6],[7,9],[10,12]],
+        "4": [[1,2],[3,4],[5,6],[7,9],[10,12]], 
+        "5": [[1,2],[3,4],[5,6],[7,8],[9,10]],
+        "6": [[1,2],[3,4],[5,6],[7,8],[9,10]]
+    }
+};
+
+// 1. 資料庫初始化
+function initDB() {
+    const request = indexedDB.open("RecitationDB", 1);
+    request.onupgradeneeded = (e) => {
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains("poems")) d.createObjectStore("poems", { keyPath: ["grade", "id"] });
+        if (!d.objectStoreNames.contains("records")) d.createObjectStore("records", { autoIncrement: true });
+    };
+    request.onsuccess = (e) => {
+        db = e.target.result;
+        addLog("資料庫連線成功！");
+        updateCount();
+    };
+}
+
+// 2. 闖關流程
+document.getElementById('start-btn').onclick = async () => {
+    const semester = document.getElementById('s-semester').value;
+    const g = document.getElementById('s-grade').value;
+    const c = document.getElementById('s-class').value;
+    const s = document.getElementById('s-seat').value;
+
+    if (!g || !c || !s) return alert("⚠️ 關主，資料還沒選完整喔！");
+
+    const tx = db.transaction(["poems"], "readonly");
+    tx.objectStore("poems").getAll().onsuccess = (e) => {
+        const filtered = e.target.result.filter(p => p.grade === parseInt(g));
+        if (filtered.length === 0) {
+            showError(`❌ 找不到 ${g} 年級的任何題目數據，請先輸入完整題庫。`);
+            return;
+        }
+
+        state.current = { semester: semester, grade: g, class: c, seat: s };
+        state.poems = filtered;
+        state.results = [null, null, null, null, null];
+
+        enterChallengeMode();
+        renderCards();
+    };
+};
+
+function enterChallengeMode() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.className = "sidebar-slim bg-white border-r-8 border-[#FBBC05] p-4 flex flex-col transition-all duration-500 relative z-50 shadow-2xl";
+    }
+    const sidebarContent = document.getElementById('sidebar-content');
+    if (sidebarContent) sidebarContent.style.display = "none";
+    
+    const sidebarTitleText = document.getElementById('sidebar-title-text');
+    if (sidebarTitleText) sidebarTitleText.style.display = "none";
+    
+    const sidebarMini = document.getElementById('sidebar-mini');
+    const sidebarMiniText = document.getElementById('sidebar-mini-text');
+    if (sidebarMini) sidebarMini.style.display = "flex";
+    if (sidebarMiniText) sidebarMiniText.innerText = state.current.semester == "1" ? "上學期挑戰" : "下學期挑戰";
+    
+    const welcomeView = document.getElementById('welcome-view');
+    if (welcomeView) welcomeView.style.display = "none";
+    
+    const gameContainer = document.getElementById('game-container');
+    if (gameContainer) gameContainer.style.display = "block";
+    
+    const cancelBtn = document.getElementById('cancel-btn');
+    if (cancelBtn) cancelBtn.classList.remove('hidden');
+    
+    const badge = document.getElementById('status-badge');
+    if (badge) {
+        badge.innerText = `背誦中：${state.current.grade}-${state.current.class}-${state.current.seat}`;
+        badge.className = "px-6 py-3 bg-[#4285F4] rounded-full text-white font-black shadow-lg";
+    }
+}
+
+function renderCards() {
+    const container = document.getElementById('game-container');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const semKey = "S" + state.current.semester;
+    const rule = POEM_RULES[semKey][state.current.grade];
+
+    for (let i = 0; i < 5; i++) {
+        const range = rule[i];
+        const pool = state.poems.filter(p => p.id >= range[0] && p.id <= (range[1] || range[0]));
+        const poem = pool[Math.floor(Math.random() * pool.length)];
+
+        if (!poem) {
+            const semName = state.current.semester == "1" ? "上學期" : "下學期";
+            showError(`⚠️ 題庫編號不符！${semName} 第 ${i+1} 關找不到對應題號 (${range[0]}~${range[1]}) 的題目。請關主補足完整題庫後再開始。`);
+            physicalReset();
+            return;
+        }
+
+        const card = document.createElement('div');
+        card.id = `card-${i}`;
+        card.className = `p-10 bg-white rounded-[3rem] transition-all duration-500 ${i === 0 ? 'card-active' : 'card-locked'}`;
+        card.innerHTML = `
+            <div class="flex justify-between items-center mb-8">
+                <span class="text-xl font-black text-white bg-[#4285F4] px-6 py-2 rounded-full">第 ${i+1} 關</span>
+                <div class="flex gap-4">
+                    <button onclick="mark(${i}, 'O')" id="btn-${i}-O" class="btn-option px-8 py-3 rounded-full border-4 border-slate-100 text-slate-400 font-black text-2xl">🟢 通過</button>
+                    <button onclick="mark(${i}, 'X')" id="btn-${i}-X" class="btn-option px-8 py-3 rounded-full border-4 border-slate-100 text-slate-400 font-black text-2xl">🔴 失敗</button>
+                </div>
+            </div>
+            <p class="text-4xl font-black text-center text-slate-700 leading-relaxed px-4">${poem.content}</p>
+        `;
+        container.appendChild(card);
+    }
+}
+
+window.mark = (round, score) => {
+    state.results[round] = score;
+    const bO = document.getElementById(`btn-${round}-O`);
+    const bX = document.getElementById(`btn-${round}-X`);
+
+    if (score === 'O') {
+        if (bO) bO.className = "btn-option px-8 py-3 rounded-full bg-[#34A853] text-white font-black text-2xl bubble-shadow-green border-transparent";
+        if (bX) bX.className = "btn-option px-8 py-3 rounded-full bg-slate-50 text-slate-200 border-transparent opacity-50";
+        if (round < 4) {
+            const next = document.getElementById(`card-${round+1}`);
+            if (next) {
+                next.classList.remove('card-locked');
+                next.classList.add('card-active');
+                setTimeout(() => next.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+            }
+        }
+    } else {
+        if (bX) bX.className = "btn-option px-8 py-3 rounded-full bg-[#EA4335] text-white font-black text-2xl bubble-shadow-red border-transparent";
+        if (bO) bO.className = "btn-option px-8 py-3 rounded-full bg-slate-50 text-slate-200 border-transparent opacity-50";
+    }
+    checkFinal();
+};
+
+function checkFinal() {
+    const finalArea = document.getElementById('final-area');
+    const resultText = document.getElementById('final-result-text');
+    if (!finalArea || !resultText) return;
+    
+    if (state.results.includes('X')) {
+        resultText.innerText = "挑戰失敗";
+        resultText.className = "text-8xl font-black text-[#EA4335]";
+        finalArea.classList.remove('hidden');
+        setTimeout(() => finalArea.scrollIntoView({ behavior: 'smooth' }), 200);
+    } else if (state.results.every(r => r === 'O')) {
+        resultText.innerText = "成功過關";
+        resultText.className = "text-8xl font-black text-[#34A853]";
+        finalArea.classList.remove('hidden');
+        setTimeout(() => finalArea.scrollIntoView({ behavior: 'smooth' }), 200);
+    }
+}
+
+// 3. 重置與存檔 (修正：加入結果細節)
+document.getElementById('save-btn').onclick = () => {
+    // 複製目前的結果，避免物理重置時丟失
+    const resultsSnapshot = [...state.results];
+    const record = {
+        ...state.current,
+        results: resultsSnapshot, // 新增：存入每一關成績
+        total: state.results.includes('X') ? "失敗" : "過關",
+        time: new Date().toLocaleString()
+    };
+    
+    const tx = db.transaction(["records"], "readwrite");
+    tx.objectStore("records").add(record).onsuccess = () => {
+        const semName = record.semester == "1" ? "上學期" : "下學期";
+        const logMsg = `存檔成功：[${semName}] ${record.grade}-${record.class}-${record.seat}`;
+        
+        updateCount();
+        physicalReset(); 
+        addLog(logMsg);
+    };
+};
+
+function confirmCancel() {
+    closeModal('modal-cancel');
+    physicalReset();
+}
+
+function physicalReset() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.className = "sidebar-full bg-white border-r-8 border-[#FBBC05] p-8 flex flex-col transition-all duration-500 relative z-50 shadow-2xl";
+    }
+    const sidebarContent = document.getElementById('sidebar-content');
+    if (sidebarContent) sidebarContent.style.display = "block";
+    
+    const sidebarTitleText = document.getElementById('sidebar-title-text');
+    if (sidebarTitleText) sidebarTitleText.style.display = "inline";
+    
+    const sidebarMini = document.getElementById('sidebar-mini');
+    if (sidebarMini) sidebarMini.style.display = "none";
+
+    const container = document.getElementById('game-container');
+    if (container) {
+        container.innerHTML = '';
+        container.style.display = "none";
+    }
+    
+    const welcomeView = document.getElementById('welcome-view');
+    if (welcomeView) welcomeView.style.display = "flex";
+    
+    const finalArea = document.getElementById('final-area');
+    if (finalArea) finalArea.classList.add('hidden');
+    
+    const cancelBtn = document.getElementById('cancel-btn');
+    if (cancelBtn) cancelBtn.classList.add('hidden');
+    
+    const badge = document.getElementById('status-badge');
+    if (badge) {
+        badge.innerText = "系統待命";
+        badge.className = "px-6 py-3 bg-white rounded-full border-4 border-slate-100 font-black text-slate-400 shadow-sm";
+    }
+
+    const seatSelect = document.getElementById('s-seat');
+    if (seatSelect) {
+        seatSelect.value = "";
+        seatSelect.focus();
+        seatSelect.blur();
+    }
+
+    state.current = null;
+    state.results = [null, null, null, null, null];
+}
+
+// 4. 管理功能 (修正：更新匯出格式)
+function processImport(data) {
+    const lines = data.replace(/^\ufeff/, '').replace(/\r/g, '').split('\n');
+    const tx = db.transaction(["poems"], "readwrite");
+    const store = tx.objectStore("poems");
+    let count = 0;
+
+    lines.forEach(line => {
+        const p = line.split(/[,\t;]/);
+        if (p.length >= 3) {
+            const g = parseInt(p[0].replace(/[^0-9]/g, ''));
+            const id = parseInt(p[1].replace(/[^0-9]/g, ''));
+            const content = p.slice(2).join(',').trim();
+            if (!isNaN(g) && !isNaN(id) && content) {
+                store.put({ grade: g, id: id, content: content });
+                count++;
+            }
+        }
+    });
+    tx.oncomplete = () => {
+        addLog(`成功匯入 ${count} 筆題目數據`);
+        alert(`匯入大成功！共 ${count} 筆題目。`);
+        const rawTextEl = document.getElementById('raw-text');
+        if (rawTextEl) rawTextEl.value = '';
+    };
+}
+
+// 核心修正：匯出格式與圖片一致
+function exportCSV() {
+    db.transaction(["records"], "readonly").objectStore("records").getAll().onsuccess = (e) => {
+        const data = e.target.result;
+        if (data.length === 0) return alert("目前還沒有英雄榜紀錄喔！");
+        
+        // 欄位標題與圖片完全一致
+        let csv = "\ufeff學期,年級,班級,座號,G1,G2,G3,G4,G5,總結,時間\n";
+        
+        data.forEach(r => {
+            const semName = r.semester == "1" ? "上學期" : "下學期";
+            // 讀取各關成績，若無則留空
+            const g1 = r.results ? (r.results[0] || '') : '';
+            const g2 = r.results ? (r.results[1] || '') : '';
+            const g3 = r.results ? (r.results[2] || '') : '';
+            const g4 = r.results ? (r.results[3] || '') : '';
+            const g5 = r.results ? (r.results[4] || '') : '';
+            
+            csv += `${semName},${r.grade},${r.class},${r.seat},${g1},${g2},${g3},${g4},${g5},${r.total},${r.time}\n`;
+        });
+        
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+        link.download = `經典背誦成績_${new Date().toISOString().slice(0,10)}.csv`;
+        link.click();
+    };
+}
+
+function importFromText() {
+    const rawTextEl = document.getElementById('raw-text');
+    if (!rawTextEl) return;
+    const txt = rawTextEl.value.trim();
+    if (txt) processImport(txt);
+}
+
+function handleFile(input) {
+    const f = input.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = (e) => processImport(e.target.result);
+    r.readAsText(f);
+}
+
+function confirmClear() {
+    const tx = db.transaction(["poems", "records"], "readwrite");
+    tx.objectStore("poems").clear();
+    tx.objectStore("records").clear();
+    tx.oncomplete = () => {
+        alert("資料已全部清空，系統將重新載入。");
+        location.reload();
+    };
+}
+
+function updateCount() {
+    if(!db) return;
+    try {
+        const tx = db.transaction(["records"], "readonly");
+        const store = tx.objectStore("records");
+        const request = store.count();
+        request.onsuccess = (e) => {
+            const count = e.target.result;
+            const elRecordCount = document.getElementById('record-count');
+            const elCountDisplay = document.getElementById('count-display');
+            if (elRecordCount) elRecordCount.innerText = count;
+            if (elCountDisplay) elCountDisplay.innerText = count;
+        };
+    } catch (err) {
+        console.error("更新計數時出錯:", err);
+    }
+}
+
+function downloadTemplate() {
+    const c = "\ufeff年級,題號,題目內容\n1,1,床前明月光，疑是地上霜。\n1,12,（測試用第12首）舉頭望明月，低頭思故鄉。";
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([c], { type: 'text/csv;charset=utf-8;' }));
+    link.download = "題庫範例.csv";
+    link.click();
+}
+
+function openAdmin() { 
+    const el = document.getElementById('modal-admin');
+    if (el) el.classList.remove('hidden'); 
+}
+
+function closeModal(id) { 
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden'); 
+}
+
+function showError(msg) {
+    const el = document.getElementById('modal-error');
+    const msgEl = document.getElementById('error-message');
+    if (el && msgEl) {
+        msgEl.innerText = msg;
+        el.classList.remove('hidden');
+    }
+}
+
+function closeModalAndReset() {
+    closeModal('modal-error');
+    physicalReset();
+    openAdmin();
+}
+
+document.getElementById('cancel-btn').onclick = () => {
+    const el = document.getElementById('modal-cancel');
+    if (el) el.classList.remove('hidden');
+};
+
+function addLog(msg) {
+    const box = document.getElementById('log-box');
+    if (box) {
+        box.innerHTML += `<div>> [${new Date().toLocaleTimeString()}] ${msg}</div>`;
+        box.scrollTop = box.scrollHeight;
+    }
+}
+
+window.onload = initDB;
+</script>
+</body>
+</html>
